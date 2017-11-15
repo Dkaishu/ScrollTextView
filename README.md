@@ -23,7 +23,8 @@ Add it in your root build.gradle at the end of repositories:
 Step 2. Add the dependency
 
 	dependencies {
-	        compile 'com.github.Dkaishu:ScrollTextView:V1.0.3'
+	// i am sorry ,you can't use it this way yet
+	        //compile 'com.github.Dkaishu:ScrollTextView:V1.0.3'
 	}
 
 Step 3. Use it in your code
