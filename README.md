@@ -1,17 +1,15 @@
 # ScrollTextView
 [![](https://jitpack.io/v/helen-x/JitpackReleaseDemo.svg)](https://jitpack.io/#Dkaishu/ScrollTextView)
 ### An Android Vertical Scrollable TextView;
-
 ### Android 垂直滚动展示的 TextView ;
  欢迎提 issues ☝☝
-
 
 ![image](https://github.com/Dkaishu/ScrollTextView/blob/master/example.gif)
 
 - 继承自 View,可使用 View 相关属性；
 - 可设置：字体大小颜色、滚动动画速度（时间）、停留显示时间、是否单行显示、单行显示是否带有省略号
 - 可监听：不同文字的点击事件、滚动动画开始和结束
-
+- 只有一个类文件，若不想依赖方式使用，将ScrollTextView.class 和 scroll_textview_attrs.xml 添加到本地即可
 
 How to
 
@@ -106,9 +104,10 @@ Step 3. Use it in your code
     //        stvExample.setTextColor();
     //        stvExample.setTextSize();
             
-              stvExample.setTextContent(textList, clickListeners, scrollListeners);
-            
-    //        you can also setTextContent in this way below.
+           //Auto start,so you don't need this line,unless restart.
+    //        stvExample.startTextScroll();
+   
+           //you can also setTextContent in this way below.
             
     //        stvExample.setTextContent(textList, clickListeners);
     //        stvExample.setTextContent(textList);

@@ -25,7 +25,9 @@ public class MainActivity extends AppCompatActivity {
         List<ScrollTextView.OnScrollClickListener> clickListeners = new ArrayList<>();
         List<ScrollTextView.OnScrollListener> scrollListeners = new ArrayList<>();
 
-        textList.add("The adolescent girl from Tennessee is standing on the stage of a drama summer camp in upstate New York. It's a beautiful day. But the girl doesn't feel beautiful. She's not the leggy, glamorous Hollywood type.");
+        textList.add("The adolescent girl from Tennessee is standing on the stage of a drama " +
+                "summer camp in upstate New York. It's a beautiful day. But the girl doesn't " +
+                "feel beautiful. She's not the leggy, glamorous Hollywood type.");
         textList.add("一名少女由田纳西州来到纽约北部，她站在戏剧夏令营的舞台上，虽然天气是那么好，她的心情却一点也不好。");
 
 
@@ -71,7 +73,10 @@ public class MainActivity extends AppCompatActivity {
 
         stvExample.setTextContent(textList, clickListeners, scrollListeners);
 
-//        you can also setTextContent in this way below.
+        //Auto start,so you don't need this line,unless restart.
+//        stvExample.startTextScroll();
+
+        //you can also setTextContent in this way below.
 
 //        stvExample.setTextContent(textList, clickListeners);
 //        stvExample.setTextContent(textList);
