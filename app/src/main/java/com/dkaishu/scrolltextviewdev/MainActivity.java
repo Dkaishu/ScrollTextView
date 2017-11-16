@@ -25,21 +25,21 @@ public class MainActivity extends AppCompatActivity {
         List<ScrollTextView.OnScrollClickListener> clickListeners = new ArrayList<>();
         List<ScrollTextView.OnScrollListener> scrollListeners = new ArrayList<>();
 
-        textList.add("Be yourself, never give up. The adolescent girl from Tennessee is standing on the stage of a drama summer camp in upstate New York. It's a beautiful day. But the girl doesn't feel beautiful. She's not the leggy, glamorous Hollywood type.");
+        textList.add("The adolescent girl from Tennessee is standing on the stage of a drama summer camp in upstate New York. It's a beautiful day. But the girl doesn't feel beautiful. She's not the leggy, glamorous Hollywood type.");
         textList.add("一名少女由田纳西州来到纽约北部，她站在戏剧夏令营的舞台上，虽然天气是那么好，她的心情却一点也不好。");
 
 
         clickListeners.add(new ScrollTextView.OnScrollClickListener() {
             @Override
             public void onClick() {
-                Toast.makeText(MainActivity.this, "this is text one", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "this is the text one", Toast.LENGTH_SHORT).show();
             }
         });
 
         clickListeners.add(new ScrollTextView.OnScrollClickListener() {
             @Override
             public void onClick() {
-                Toast.makeText(MainActivity.this, "this is text two", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "this is the text two", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
                 for (ScrollTextView.TextInfo s : passedTextInfos) {
                     text = text + s.getText();
                 }
-                Log.e(TAG, "" + text);
+                Log.d(TAG, "" + text);
             }
 
             @Override
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 for (ScrollTextView.TextInfo s : incommingTextInfos) {
                     text = text + s.getText();
                 }
-                Log.e(TAG, "" + text);
+                Log.d(TAG, "" + text);
             }
         });
 
@@ -68,7 +68,14 @@ public class MainActivity extends AppCompatActivity {
 //        stvExample.setSpanTime(3000);
 //        stvExample.setTextColor();
 //        stvExample.setTextSize();
+
         stvExample.setTextContent(textList, clickListeners, scrollListeners);
+
+//        you can also setTextContent in this way below.
+
+//        stvExample.setTextContent(textList, clickListeners);
+//        stvExample.setTextContent(textList);
+//        stvExample.setTextContent(textList, null, scrollListeners);
     }
 
     @Override

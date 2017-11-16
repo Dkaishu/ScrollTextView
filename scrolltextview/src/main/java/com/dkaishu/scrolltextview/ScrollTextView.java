@@ -21,8 +21,8 @@ import java.util.Queue;
 /**
  * * 功能实现：
  * 0.纵向滚动
- * 1.字体大小颜色、滚动速度（时间）、停留时间、是否单行显示、单行显示是否带有省略号、是否循环、
- * 2.滚动动画开始与停止的监听
+ * 1.字体大小颜色、滚动速度（时间）、停留时间、是否单行显示、单行显示是否带有省略号、
+ * 2.滚动动画开始与停止的监听，点击事件的监听
  * Created by dks on 2017/11/14.
  */
 
@@ -277,10 +277,11 @@ public class ScrollTextView extends View implements View.OnClickListener {
      * @param list 滚动内容集合
      */
     public void setTextContent(List<String> list) {
-        this.mContents = list;
-        this.mScrollClickListeners = null;
-        requestLayout();
-        invalidate();
+        setTextContent(list, null, null);
+//        this.mContents = list;
+//        this.mScrollClickListeners = null;
+//        requestLayout();
+//        invalidate();
     }
 
     /**
@@ -288,11 +289,12 @@ public class ScrollTextView extends View implements View.OnClickListener {
      * @param scrollClickListeners 滚动内容的点击监听集合 @nullable
      */
     public void setTextContent(List<String> list, List<OnScrollClickListener> scrollClickListeners) {
-        this.mContents = list;
-        this.mScrollClickListeners = scrollClickListeners;
-        this.mScrollListeners = null;
-        requestLayout();
-        invalidate();
+        setTextContent(list, scrollClickListeners, null);
+//        this.mContents = list;
+//        this.mScrollClickListeners = scrollClickListeners;
+//        this.mScrollListeners = null;
+//        requestLayout();
+//        invalidate();
     }
 
     /**
