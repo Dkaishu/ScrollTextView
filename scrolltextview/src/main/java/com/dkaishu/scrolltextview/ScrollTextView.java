@@ -49,7 +49,7 @@ public class ScrollTextView extends View implements View.OnClickListener {
     private static final boolean ELLIPSIS = true;
 
     /**
-     * 默认文字滚动时间
+     * 默认文字滚动时间（滚动控制速度）
      */
     private static final long DEFAULT_SCROLL_TIME = 500;
 
@@ -186,12 +186,15 @@ public class ScrollTextView extends View implements View.OnClickListener {
             if (mTextInfos.size() > 1) {
                 mValueAnimator = ValueAnimator.ofFloat(0.0f, -1.0f);
                 mValueAnimator.setDuration(scrollTime);
-                final OnScrollListener sl = mIndexMap.get(mCurrentTextInfos).getScrollListener();
+                OnScrollListener sl = null;
+                if (null != mIndexMap.get(mCurrentTextInfos))
+                    sl = mIndexMap.get(mCurrentTextInfos).getScrollListener();
+                final OnScrollListener finalSl = sl;
                 mValueAnimator.addListener(new Animator.AnimatorListener() {
 
                     @Override
                     public void onAnimationStart(Animator animation) {
-                        if (sl != null) sl.onScrollStart(mCurrentTextInfos);
+                        if (finalSl != null) finalSl.onScrollStart(mCurrentTextInfos);
                     }
 
                     @Override
@@ -204,7 +207,7 @@ public class ScrollTextView extends View implements View.OnClickListener {
                         mTop = 0;
                         mCurrentTextInfos = mTextInfos.poll();
                         mTextInfos.offer(mCurrentTextInfos);
-                        if (sl != null) sl.onScrollEnd(mCurrentTextInfos);
+                        if (finalSl != null) finalSl.onScrollEnd(mCurrentTextInfos);
                         startTextScroll();
                     }
 
@@ -213,18 +216,19 @@ public class ScrollTextView extends View implements View.OnClickListener {
                         mTop = 0;
                     }
                 });
-                mValueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        float value = (Float) animation.getAnimatedValue();
-                        mTop = (int) (value * (mTextHeight + getPaddingTop() + getPaddingBottom()));
-                        invalidate();
-                    }
-
-                });
-                mValueAnimator.start();
             }
+
+            mValueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float value = (Float) animation.getAnimatedValue();
+                    mTop = (int) (value * (mTextHeight + getPaddingTop() + getPaddingBottom()));
+                    invalidate();
+                }
+
+            });
+            mValueAnimator.start();
         }
     };
 
@@ -278,10 +282,6 @@ public class ScrollTextView extends View implements View.OnClickListener {
      */
     public void setTextContent(List<String> list) {
         setTextContent(list, null, null);
-//        this.mContents = list;
-//        this.mScrollClickListeners = null;
-//        requestLayout();
-//        invalidate();
     }
 
     /**
@@ -290,11 +290,6 @@ public class ScrollTextView extends View implements View.OnClickListener {
      */
     public void setTextContent(List<String> list, List<OnScrollClickListener> scrollClickListeners) {
         setTextContent(list, scrollClickListeners, null);
-//        this.mContents = list;
-//        this.mScrollClickListeners = scrollClickListeners;
-//        this.mScrollListeners = null;
-//        requestLayout();
-//        invalidate();
     }
 
     /**
@@ -312,7 +307,7 @@ public class ScrollTextView extends View implements View.OnClickListener {
     }
 
     /**
-     * 设置文字的滚动时间，以控制滚动速度
+     * 设置文字的滚动时间，以控制滚动速度，必须小于等于文字滚动的间隔时间spanTime
      *
      * @param scrollTime 单位毫秒，默认500ms
      */
@@ -323,7 +318,7 @@ public class ScrollTextView extends View implements View.OnClickListener {
     /**
      * 设置文字滚动的间隔时间
      *
-     * @param spanTime 单位毫秒，默认3000ms
+     * @param spanTime 单位毫秒，默认3000ms,必须大于等于文字的滚动时间scrollTime
      */
     public void setSpanTime(long spanTime) {
         this.spanTime = spanTime;
@@ -350,9 +345,11 @@ public class ScrollTextView extends View implements View.OnClickListener {
     }
 
     /**
-     * 描述: 文字开始自动滚动,初始化会自动调用该方法(适当的时机调用)
+     * 文字开始自动滚动,初始化会自动调用该方法(适当的时机调用)
      */
     public synchronized void startTextScroll() {
+        if (spanTime <= scrollTime)
+            throw new RuntimeException("spanTime must longer or same as scrollTime");
         if (mValueAnimator != null && mValueAnimator.isRunning()) {
             mValueAnimator.cancel();
             mValueAnimator = null;
@@ -362,7 +359,7 @@ public class ScrollTextView extends View implements View.OnClickListener {
     }
 
     /**
-     * 描述: 文字暂停滚动(适当的时机调用)
+     * 文字暂停滚动(适当的时机调用)
      */
     public synchronized void stopTextScroll() {
         if (mValueAnimator != null && mValueAnimator.isRunning()) {
@@ -383,7 +380,7 @@ public class ScrollTextView extends View implements View.OnClickListener {
     }
 
     /**
-     * 描述: 文字排版
+     * 文字排版
      *
      * @param maxParentWidth
      * @param list           排版的滚动文字

@@ -66,8 +66,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        stvExample.setScrollTime(500);
-//        stvExample.setSpanTime(3000);
+        stvExample.setScrollTime(200);
+        stvExample.setSpanTime(300);
 //        stvExample.setTextColor();
 //        stvExample.setTextSize();
 
