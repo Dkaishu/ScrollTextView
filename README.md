@@ -29,7 +29,7 @@ Step 2. Add the dependency
 
 	dependencies {
 
-	        compile 'com.github.Dkaishu:ScrollTextView:V1.2.3'
+	        compile 'com.github.Dkaishu:ScrollTextView:V1.2.4'
 	}
 
 Step 3. Use it in your code
