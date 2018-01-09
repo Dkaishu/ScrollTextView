@@ -1,8 +1,14 @@
 package com.dkaishu.scrolltextviewdev;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.dkaishu.scrolltextview.ScrollTextView;
@@ -66,12 +72,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        stvExample.setScrollTime(200);
-        stvExample.setSpanTime(300);
+        stvExample.setTransferTime(1000);
+        stvExample.setSpanTime(1200);
 //        stvExample.setTextColor();
-//        stvExample.setTextSize();
+        stvExample.setTextSize(88);
 
         stvExample.setTextContent(textList, clickListeners, scrollListeners);
+        stvExample.setTransferMode(ScrollTextView.TransferMode.TRANSFER_MODE_FADING);
 
         //Auto start,so you don't need this line,unless restart.
 //        stvExample.startTextScroll();
@@ -81,17 +88,96 @@ public class MainActivity extends AppCompatActivity {
 //        stvExample.setTextContent(textList, clickListeners);
 //        stvExample.setTextContent(textList);
 //        stvExample.setTextContent(textList, null, scrollListeners);
+        Log.e(TAG, "onCreate"+ "\n");
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.e(TAG, "onResume" + "\n");
+
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
         stvExample.startTextScroll();
+        Log.e(TAG, "onRestart"+ "\n");
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.e(TAG, "onStart"+ "\n");
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.e(TAG, "onPause"+ "\n");
+
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         stvExample.stopTextScroll();
+        Log.e(TAG, "onStop"+ "\n");
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG, "onDestroy"+ "\n");
+
+    }
+
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        Log.e(TAG, "onAttachedToWindow"+ "\n");
+
+    }
+
+    @Override
+    public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        Log.e(TAG, "onDetachedFromWindow"+ "\n");
+
+    }
+
+
+    @Override
+    public void onWindowAttributesChanged(WindowManager.LayoutParams params) {
+        super.onWindowAttributesChanged(params);
+        Log.e(TAG, "onWindowAttributesChanged"+ "\n");
+
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        Log.e(TAG, "onUserLeaveHint"+ "\n");
+
+    }
+
+
+    @Override
+    public View onCreateView(String name, Context context, AttributeSet attrs) {
+        Log.e(TAG, "onCreateView"+ "\n");
+
+        return super.onCreateView(name, context, attrs);
+
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
+        super.onCreate(savedInstanceState, persistentState);
+        Log.e(TAG, "onCreate:  persistentState"+ "\n");
+
+    }
+
 }

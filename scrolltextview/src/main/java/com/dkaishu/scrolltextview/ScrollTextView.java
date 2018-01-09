@@ -8,15 +8,24 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Handler;
+import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+
+import static com.dkaishu.scrolltextview.ScrollTextView.TransferMode.TRANSFER_MODE_FADING;
+import static com.dkaishu.scrolltextview.ScrollTextView.TransferMode.TRANSFER_MODE_SCROLLING;
 
 /**
  * * 功能实现：
@@ -61,7 +70,7 @@ public class ScrollTextView extends View implements View.OnClickListener {
     /**
      * 文字滚动时间,默认500ms
      */
-    private long scrollTime = DEFAULT_SCROLL_TIME;
+    private long transferTime = DEFAULT_SCROLL_TIME;
 
     /**
      * 文字切换间隔时间,默认3000ms
@@ -172,10 +181,25 @@ public class ScrollTextView extends View implements View.OnClickListener {
         mTextInfos = new LinkedList<>();
         mEllipsisTextInfos = new ArrayList<>();
 
+
         setOnClickListener(this);
     }
 
-    ValueAnimator mValueAnimator;
+    private ValueAnimator mValueAnimator;
+    private Animation fadeInAnimation, fadeOutAnimation;
+    private boolean isFadingIn, isFadingOut;
+
+    private int mTransferMode = TRANSFER_MODE_SCROLLING;
+
+    @IntDef({TRANSFER_MODE_FADING, TRANSFER_MODE_SCROLLING})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface TransferMode {
+        int TRANSFER_MODE_FADING = 1, TRANSFER_MODE_SCROLLING = 2;
+    }
+
+    public void setTransferMode(@TransferMode int transferMode) {
+        this.mTransferMode = transferMode;
+    }
 
     Handler mHandler = new Handler();
 
@@ -184,51 +208,132 @@ public class ScrollTextView extends View implements View.OnClickListener {
         @Override
         public void run() {
             if (mTextInfos.size() > 1) {
-                mValueAnimator = ValueAnimator.ofFloat(0.0f, -1.0f);
-                mValueAnimator.setDuration(scrollTime);
-                OnScrollListener sl = null;
-                if (null != mIndexMap.get(mCurrentTextInfos))
-                    sl = mIndexMap.get(mCurrentTextInfos).getScrollListener();
-                final OnScrollListener finalSl = sl;
-                mValueAnimator.addListener(new Animator.AnimatorListener() {
+                switch (mTransferMode) {
+                    case TRANSFER_MODE_SCROLLING:
+                        mValueAnimator = ValueAnimator.ofFloat(0.0f, -1.0f);
+                        mValueAnimator.setDuration(transferTime);
+                        OnScrollListener sl = null;
+                        if (null != mIndexMap.get(mCurrentTextInfos))
+                            sl = mIndexMap.get(mCurrentTextInfos).getScrollListener();
+                        final OnScrollListener finalSl = sl;
+                        mValueAnimator.addListener(new Animator.AnimatorListener() {
 
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-                        if (finalSl != null) finalSl.onScrollStart(mCurrentTextInfos);
-                    }
+                            @Override
+                            public void onAnimationStart(Animator animation) {
+//                        mTop = 0;
+                                mCurrentTextInfos = mTextInfos.poll();
+                                mTextInfos.offer(mCurrentTextInfos);
+                                if (finalSl != null) finalSl.onScrollStart(mCurrentTextInfos);
+                            }
 
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {
+                            @Override
+                            public void onAnimationRepeat(Animator animation) {
 
-                    }
+                            }
 
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        mTop = 0;
-                        mCurrentTextInfos = mTextInfos.poll();
-                        mTextInfos.offer(mCurrentTextInfos);
-                        if (finalSl != null) finalSl.onScrollEnd(mCurrentTextInfos);
-                        startTextScroll();
-                    }
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                mTop = 0;
+//                        mCurrentTextInfos = mTextInfos.poll();
+//                        mTextInfos.offer(mCurrentTextInfos);
+                                //Todo 此处会多一次回调，当scrollListeners.size < textlist.size
+                                ///mIndexMap
+//                        mScrollListeners.indexOf(mIndexMap.get(mCurrentTextInfos).getScrollListener())<
 
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-                        mTop = 0;
-                    }
-                });
-            }
+                                if (finalSl != null) finalSl.onScrollEnd(mCurrentTextInfos);
+                                startTextScroll();
+                            }
 
-            mValueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
+                                mTop = 0;
+                            }
+                        });
 
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    float value = (Float) animation.getAnimatedValue();
-                    mTop = (int) (value * (mTextHeight + getPaddingTop() + getPaddingBottom()));
-                    invalidate();
+                        mValueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+                            @Override
+                            public void onAnimationUpdate(ValueAnimator animation) {
+                                float value = (Float) animation.getAnimatedValue();
+                                mTop = (int) (value * (mTextHeight + getPaddingTop() + getPaddingBottom()));
+                                invalidate();
+                            }
+
+                        });
+                        mValueAnimator.start();
+
+                        break;
+                    case TRANSFER_MODE_FADING:
+                        if (fadeInAnimation == null || fadeOutAnimation == null) {
+                            fadeInAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.fadein);
+                            fadeOutAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.fadeout);
+                            fadeInAnimation.setDuration(transferTime);
+                            fadeOutAnimation.setDuration(transferTime);
+                            isFadingOut = true;
+                            OnScrollListener sl1 = null;
+                            if (null != mIndexMap.get(mCurrentTextInfos))
+                                sl1 = mIndexMap.get(mCurrentTextInfos).getScrollListener();
+                            final OnScrollListener finalSl1 = sl1;
+
+                            fadeInAnimation.setAnimationListener(new Animation.AnimationListener() {
+                                @Override
+                                public void onAnimationStart(Animation animation) {
+                                    mCurrentTextInfos = mTextInfos.poll();
+                                    mTextInfos.offer(mCurrentTextInfos);
+                                    if (finalSl1 != null) finalSl1.onScrollStart(mCurrentTextInfos);
+                                    isFadingIn = true;
+                                    isFadingOut = false;
+                                }
+
+                                @Override
+                                public void onAnimationEnd(Animation animation) {
+                                    startTextFading();
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(Animation animation) {
+
+                                }
+                            });
+                            fadeOutAnimation.setAnimationListener(new Animation.AnimationListener() {
+                                @Override
+                                public void onAnimationStart(Animation animation) {
+                                    isFadingIn = false;
+                                    isFadingOut = true;
+                                }
+
+                                @Override
+                                public void onAnimationEnd(Animation animation) {
+                                    mTop = 0;
+                                    if (finalSl1 != null) finalSl1.onScrollEnd(mCurrentTextInfos);
+                                    startTextFading();
+
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(Animation animation) {
+
+                                }
+                            });
+                        }
+                        if (isFadingOut) {
+//                                setAnimation(fadeInAnimation);
+                            startAnimation(fadeInAnimation);
+
+//                                fadeInAnimation.start();
+                        }
+                        if (isFadingIn) {
+//                                setAnimation(fadeOutAnimation);
+                            startAnimation(fadeOutAnimation);
+//                                fadeOutAnimation.start();
+                        }
+
+                        break;
                 }
 
-            });
-            mValueAnimator.start();
+            }
+
+
         }
     };
 
@@ -297,22 +402,26 @@ public class ScrollTextView extends View implements View.OnClickListener {
      * @param scrollClickListeners 滚动内容的点击监听集合 @nullable
      * @param scrollListeners      滚动动画开始与停止监听集合 @nullable
      */
-    public void setTextContent(List<String> list, List<OnScrollClickListener> scrollClickListeners
+    public void setTextContent(@NonNull List<String> list, List<OnScrollClickListener> scrollClickListeners
             , List<OnScrollListener> scrollListeners) {
-        this.mContents = list;
-        this.mScrollClickListeners = scrollClickListeners;
-        this.mScrollListeners = scrollListeners;
-        requestLayout();
-        invalidate();
+        if (list.size() < 1) {
+            throw new IllegalArgumentException("There must be at least one text");
+        } else {
+            this.mContents = list;
+            this.mScrollClickListeners = scrollClickListeners;
+            this.mScrollListeners = scrollListeners;
+            requestLayout();
+            invalidate();
+        }
     }
 
     /**
      * 设置文字的滚动时间，以控制滚动速度，必须小于等于文字滚动的间隔时间spanTime
      *
-     * @param scrollTime 单位毫秒，默认500ms
+     * @param transferTime 单位毫秒，默认500ms
      */
-    public void setScrollTime(long scrollTime) {
-        this.scrollTime = scrollTime;
+    public void setTransferTime(long transferTime) {
+        this.transferTime = transferTime;
     }
 
     /**
@@ -348,13 +457,9 @@ public class ScrollTextView extends View implements View.OnClickListener {
      * 文字开始自动滚动,初始化会自动调用该方法(适当的时机调用)
      */
     public synchronized void startTextScroll() {
-        if (spanTime <= scrollTime)
-            throw new RuntimeException("spanTime must longer or same as scrollTime");
-        if (mValueAnimator != null && mValueAnimator.isRunning()) {
-            mValueAnimator.cancel();
-            mValueAnimator = null;
-        }
-        mHandler.removeCallbacks(mRunnable);
+        if (spanTime <= transferTime)
+            throw new IllegalArgumentException("spanTime must be longer than transferTime or be same as transferTime");
+        stopTextScroll();
         mHandler.postDelayed(mRunnable, spanTime);
     }
 
@@ -365,6 +470,30 @@ public class ScrollTextView extends View implements View.OnClickListener {
         if (mValueAnimator != null && mValueAnimator.isRunning()) {
             mValueAnimator.cancel();
             mValueAnimator = null;
+        }
+        mHandler.removeCallbacks(mRunnable);
+    }
+
+    /**
+     * 文字开始自动fading,初始化会自动调用该方法(适当的时机调用)
+     */
+    public synchronized void startTextFading() {
+        if (transferTime <= 0)
+            throw new IllegalArgumentException("transferTime must be longer than 0");
+        stopTextFading();
+        mHandler.postDelayed(mRunnable, spanTime);
+    }
+
+    /**
+     * 文字暂停fading(适当的时机调用)
+     */
+    public synchronized void stopTextFading() {
+        if (fadeInAnimation != null && fadeInAnimation.isInitialized()
+                && fadeOutAnimation != null && fadeOutAnimation.isInitialized()) {
+            fadeInAnimation.cancel();
+            fadeOutAnimation.cancel();
+            fadeInAnimation = null;
+            fadeOutAnimation = null;
         }
         mHandler.removeCallbacks(mRunnable);
     }
@@ -532,6 +661,7 @@ public class ScrollTextView extends View implements View.OnClickListener {
             mValueAnimator.cancel();
             mValueAnimator = null;
         }
+        stopTextFading();
         mHandler.removeCallbacks(mRunnable);
         mHandler = null;
     }
@@ -648,7 +778,7 @@ public class ScrollTextView extends View implements View.OnClickListener {
     /**
      * 描述：内容滚动动画开始与结束的监听事件
      */
-    public interface OnScrollListener {
+    public interface OnScrollListener extends OnTransferListener {
         /**
          * @param passedTextInfos 动画开始前显示的文字
          */
@@ -658,5 +788,21 @@ public class ScrollTextView extends View implements View.OnClickListener {
          * @param incommingTextInfos
          */
         void onScrollEnd(List<TextInfo> incommingTextInfos);
+    }
+
+    public interface OnFadingListener extends OnTransferListener {
+        /**
+         * @param passedTextInfos 动画开始前显示的文字
+         */
+        void onFadingStart(List<TextInfo> passedTextInfos);
+
+        /**
+         * @param incommingTextInfos
+         */
+        void onFadingEnd(List<TextInfo> incommingTextInfos);
+    }
+
+    public interface OnTransferListener {
+
     }
 }
